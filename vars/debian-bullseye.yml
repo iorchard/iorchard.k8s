@@ -1,0 +1,18 @@
+---
+# pre-requisite packages
+prereq_pkgs:
+  - apt-transport-https
+  - ca-certificates
+
+# google cloud repo keyring
+gcloud_keyring: { url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg", file: "/usr/share/keyrings/kubernetes-archive-keyring.gpg" }
+
+# google cloud repo
+gcloud_repo: { repo: "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main", filename: "kubernetes" }
+
+# k8s packages
+k8s_pkgs:
+  - kubelet
+  - kubeadm
+  - kubectl
+...

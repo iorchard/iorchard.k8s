@@ -1,0 +1,20 @@
+galaxy_info:
+  namespace: iorchard
+  role_name: k8s
+  author: "Heechul Kim <jijisa@iorchard.net>"
+  description: Ansible Role for kubernetes cluster Installation
+  company: iOrchard, Inc.
+  license: Apache-2.0
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Debian
+      versions:
+        - bullseye
+    - name: Ubuntu
+      versions:
+        - focal
+  galaxy_tags:
+    - system
+
+dependencies:
+  - iorchard.crio 

@@ -1,0 +1,36 @@
+---
+- name: Debian | Install prerequisite packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+    allow_unauthenticated: no
+  loop: "{{ prereq_pkgs }}"
+  become: yes
+
+- name: Debian | Install google cloud repo keyring
+  ansible.builtin.apt_key:
+    url: "{{ gcloud_keyring.url }}"
+    keyring: "{{ gcloud_keyring.file }}"
+    state: present
+  become: yes
+
+- name: Debian | Add google cloud repository
+  ansible.builtin.apt_repository:
+    repo: "{{ gcloud_repo.repo }}"
+    state: present
+    mode: "0644"
+    filename: "{{ gcloud_repo.filename }}"
+    update_cache: yes
+    validate_certs: yes
+  become: yes
+
+- name: Debian | Install kubelet, kubeadm, and kubectl packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    allow_unauthenticated: no
+    update_cache: yes
+  loop: "{{ k8s_pkgs }}"
+  become: yes
+...
