@@ -18,5 +18,6 @@ galaxy_info:
 
 dependencies:
   - src: git+https://github.com/iorchard/iorchard.crio.git
-    version: iorchard.crio
+    version: main
+    name: iorchard.crio
 
