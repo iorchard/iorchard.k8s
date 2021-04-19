@@ -1,2 +1,20 @@
 ---
-# handlers file for iorchard.k8s
+- name: k8s | systemctl daemon-reload
+  systemd:
+    daemon_reload: yes
+  become: yes
+  changed_when: no
+  ignore_errors: yes
+
+- name: k8s | systemctl restart kubelet.service
+  service:
+    name: "kubelet.service"
+    state: "restarted"
+    enabled: true
+  loop: "{{ ansible_play_hosts }}"
+  delegate_to: "{{ item }}"
+  become: yes
+  run_once: true
+  changed_when: false
+  ignore_errors: true
+...

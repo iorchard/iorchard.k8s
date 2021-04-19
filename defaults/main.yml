@@ -1,2 +1,83 @@
 ---
-# defaults file for iorchard.k8s
+## kubeadm InitConfiguration
+# Token is a token used to validate cluster information fetched from the control-plane.
+kubeadm_token: ~
+
+# AdvertiseAddress sets the IP address for the API server to advertise.
+kube_apiserver_advertise_address: "{{ ansible_default_ipv4.address }}"
+
+# BindPort sets the secure port for the API Server to bind to.
+kube_apiserver_bind_port: "6443"
+
+# The endpoint of remote runtime service.
+kubelet_container_runtime_endpoint: "/run/crio/crio.sock"
+
+## kubeadm ClusterConfiguration
+# Kubernetes version.
+kubernetes_version: "v1.20.5"
+
+# Kubernetes cluster name.
+kubernetes_cluster_name: "{{ hostvars[groups['kube_master'][0]].ansible_machine_id | to_uuid }}"
+
+# DNSDomain is the dns domain used by k8s services. Defaults to "cluster.local".
+kubernetes_dns_domain: "cluster.local"
+
+# PodSubnet is the subnet used by pods.
+kubernetes_pod_subnet: "10.233.64.0/18"
+
+# ServiceSubnet is the subnet used by k8s services. Defaults to "10.96.0.0/12".
+kubernetes_service_subnet: "10.233.0.0/18"
+
+# ImageRepository sets the container registry to pull images from.
+kubernetes_image_repository: "k8s.gcr.io"
+
+
+## kubeadm KubeletConfiguration
+# address is the IP address for the Kubelet to serve on (set to 0.0.0.0
+# for all interfaces).
+kubelet_bind_address: "0.0.0.0"
+
+# failSwapOn tells the Kubelet to fail to start if swap is enabled on the node.
+kubelet_fail_swap_on: false
+
+# staticPodPath is the path to the directory containing local (static) pods to
+# run, or the path to a single static pod file.
+kubelet_static_pod_path: "/etc/kubernetes/manifests"
+
+# Enable QoS based Cgroup hierarchy
+kubelet_cgroups_per_qos: true
+
+# driver that the kubelet uses to manipulate cgroups on the host (cgroupfs or systemd)
+kubelet_cgroup_driver: "systemd"
+
+# Optional absolute name of cgroups to create and run the Kubelet in.
+kubelet_kubelet_cgroups: "/systemd/system.slice"
+
+# maxPods is the number of pods that can run on this Kubelet.
+kubelet_max_pods: "110"
+
+# The container runtime to use.
+kubelet_container_runtime: "remote"
+
+# A set of ResourceName=ResourceQuantity (e.g. cpu=200m,memory=150G) pairs
+# that describe resources reserved for kubernetes system components.
+kubelet_kube_reserved:
+  cpu: "200m"
+  memory: "512Mi"
+
+# systemReserved is a set of ResourceName=ResourceQuantity (e.g. cpu=200m,memory=150G)
+# pairs that describe resources reserved for non-kubernetes components.
+kubelet_system_reserved:
+  cpu: "200m"
+  memory: "512Mi"
+
+# Map of signal names to quantities that defines hard eviction thresholds. For
+# example: {"memory.available": "300Mi"}.
+kubelet_eviction_hard:
+  memory.available: "128Mi"
+  nodefs.available: "5%"
+
+# ResolverConfig is the resolver configuration file used as the basis
+# for the container DNS resolution configuration.
+kubelet_resolv_conf: "{{ _kubelet_resolv_conf }}"
+...

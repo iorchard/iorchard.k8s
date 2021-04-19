@@ -33,4 +33,11 @@
     update_cache: yes
   loop: "{{ k8s_pkgs }}"
   become: yes
+
+- name: Debian | Mark hold for kubelet, kubeadm, and kubectl
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop: "{{ k8s_pkgs }}"
+  become: yes
 ...

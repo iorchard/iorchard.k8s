@@ -30,7 +30,37 @@
       paths:
         - "."
 
+- name: Template kubeadm configuration file (kubeadm.conf)
+  template:
+    dest: "{{ item.dest }}"
+    src: "{{ item.src | default('./templates' + item.dest + '.j2') }}"
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: "{{ item.mode | default('0644') }}"
+  loop:
+    - { dest: "/etc/kubernetes/kubeadm.conf" }
+  become: yes
+  notify:
+    - k8s | systemctl daemon-reload
+    - k8s | systemctl restart kubelet.service
+
 - name: Force all notified handlers to run now
   ansible.builtin.meta: flush_handlers
 
+#- name: kubeadm init
+#  environment:
+#    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+#  shell: |
+#    set -euo pipefail
+#    kubeadm init \
+#      --skip-phases=addon/kube-proxy \
+#      --upload-certs \
+#      --config=/etc/kubernetes/kubeadm.conf
+#  args:
+#    executable: "/bin/bash"
+#  when: inventory_hostname == ansible_play_hosts[0]
+#  register: result
+#  until: result is succeeded
+#  changed_when: result is not succeeded
+#  ignore_errors: true
 ...
