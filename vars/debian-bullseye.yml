@@ -1,13 +1,20 @@
 ---
+# cilium helm repo
+cilium_helm_repo: "https://helm.cilium.io/"
+
 # pre-requisite packages
 prereq_pkgs:
   - apt-transport-https
   - ca-certificates
 
-# google cloud repo keyring
-gcloud_keyring: { url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg", file: "/usr/share/keyrings/kubernetes-archive-keyring.gpg" }
+# helm apt repo keyring
+helm_apt_keyring: { url: "https://baltocdn.com/helm/signing.asc", file: "/usr/share/keyrings/helm-apt-keyring.gpg" }
+# helm apt repo
+helm_apt_repo: { repo: "deb [signed-by=/usr/share/keyrings/helm-apt-keyring.gpg] https://baltocdn.com/helm/stable/debian/ all main", filename: "helm" }
 
-# google cloud repo
+# google cloud apt repo keyring
+gcloud_keyring: { url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg", file: "/usr/share/keyrings/kubernetes-archive-keyring.gpg" }
+# google cloud apt repo
 gcloud_repo: { repo: "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main", filename: "kubernetes" }
 
 # k8s packages
@@ -15,4 +22,8 @@ k8s_pkgs:
   - kubelet
   - kubeadm
   - kubectl
+  - helm
+
+# kubeadm | KubeletConfiguration
+_kubelet_resolv_conf: "/etc/resolv.conf"
 ...

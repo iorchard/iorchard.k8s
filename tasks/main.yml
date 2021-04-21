@@ -30,16 +30,44 @@
       paths:
         - "."
 
-- name: Template kubeadm configuration file (kubeadm.conf)
-  template:
-    dest: "{{ item.dest }}"
-    src: "{{ item.src | default('./templates' + item.dest + '.j2') }}"
-    owner: "{{ item.owner | default('root') }}"
-    group: "{{ item.group | default('root') }}"
-    mode: "{{ item.mode | default('0644') }}"
-  loop:
-    - { dest: "/etc/kubernetes/kubeadm.conf" }
+- name: Create kubeadm token
+  ansible.builtin.command: kubeadm token generate
+  register: result
+  when: inventory_hostname == groups['kube_controllers'][0]
+
+- name: Setting kubeadm_token fact
+  set_fact: kubeadm_token={{ hostvars[groups['kube_controllers'][0]].result.stdout }}
+
+- name: Create kubeadm certificate key
+  ansible.builtin.command: kubeadm certs certificate-key
+  register: result
+  when: inventory_hostname == groups['kube_controllers'][0]
+
+- name: Setting kubeadm_certkey fact
+  set_fact: kubeadm_certkey={{ hostvars[groups['kube_controllers'][0]].result.stdout }}
+
+- name: Template kubeadm configuration file for init node
+  ansible.builtin.template:
+    dest: "/etc/kubernetes/kubeadm.conf"
+    src: "etc/kubernetes/kubeadm_init.conf.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
   become: yes
+  when: inventory_hostname == groups['kube_controllers'][0]
+  notify:
+    - k8s | systemctl daemon-reload
+    - k8s | systemctl restart kubelet.service
+
+- name: Template kubeadm configuration file for join node
+  ansible.builtin.template:
+    dest: "/etc/kubernetes/kubeadm.conf"
+    src: "etc/kubernetes/kubeadm_join.conf.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: yes
+  when: inventory_hostname != groups['kube_controllers'][0]
   notify:
     - k8s | systemctl daemon-reload
     - k8s | systemctl restart kubelet.service
@@ -47,20 +75,69 @@
 - name: Force all notified handlers to run now
   ansible.builtin.meta: flush_handlers
 
-#- name: kubeadm init
-#  environment:
-#    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-#  shell: |
-#    set -euo pipefail
-#    kubeadm init \
-#      --skip-phases=addon/kube-proxy \
-#      --upload-certs \
-#      --config=/etc/kubernetes/kubeadm.conf
-#  args:
-#    executable: "/bin/bash"
-#  when: inventory_hostname == ansible_play_hosts[0]
-#  register: result
-#  until: result is succeeded
-#  changed_when: result is not succeeded
-#  ignore_errors: true
+- name: systemctl start kubelet.service
+  ansible.builtin.service:
+    name: "kubelet.service"
+    state: "started"
+    enabled: yes
+  changed_when: no
+  ignore_errors: yes
+
+- name: kubeadm init
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  ansible.builtin.shell: |
+    set -euo pipefail
+    kubeadm init \
+      --skip-phases=addon/kube-proxy \
+      --upload-certs \
+      --config=/etc/kubernetes/kubeadm.conf
+  args:
+    executable: "/bin/bash"
+  become: yes
+  when: inventory_hostname == groups['kube_controllers'][0]
+  register: result
+  until: result is succeeded
+  changed_when: result is not succeeded
+  ignore_errors: true
+
+- name: kubeadm join
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  ansible.builtin.shell: |
+    set -euo pipefail
+    kubeadm join \
+      --config=/etc/kubernetes/kubeadm.conf
+  args:
+    executable: "/bin/bash"
+  become: yes
+  when: inventory_hostname != groups['kube_controllers'][0]
+  register: result
+  until: result is succeeded
+  changed_when: result is not succeeded
+  ignore_errors: true
+
+- name: Set cluster server on /etc/kubernetes/admin.conf
+  ansible.builtin.command: kubectl --kubeconfig {{ admin_conf }} config set-cluster {{ kubernetes_cluster_name }} --server=https://{{ kube_apiserver_advertise_address }}:{{ kube_apiserver_bind_port }}
+  become: yes
+
+- name: create kubeconfig directory
+  ansible.builtin.file:
+    path: "{{ kubeconfig_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: copy kubeconfig
+  ansible.builtin.command: cp {{ admin_conf }} {{ kubeconfig_dir }}/config
+  become: yes
+
+- name: change ownership and permission of kubeconfig
+  ansible.builtin.file:
+    path: "{{ kubeconfig_dir }}/config"
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
+  become: yes
+
+- name: include Container Network (CN) installation
+  ansible.builtin.include_tasks: "cilium.yml"
 ...

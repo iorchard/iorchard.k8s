@@ -16,6 +16,7 @@ nodeRegistration:
   name: {{ ansible_hostname }}
   criSocket: {{ kubelet_container_runtime_endpoint }}
   taints: []
+certificateKey: {{ kubeadm_certkey }}
 
 ---
 apiVersion: kubeadm.k8s.io/v1beta2
@@ -34,7 +35,6 @@ apiServer:
     authorization-mode: Node,RBAC
   timeoutForControlPlane: 4m0s
 controllerManager: {}
-scheduler: {}
 dns:
   type: CoreDNS
 etcd:

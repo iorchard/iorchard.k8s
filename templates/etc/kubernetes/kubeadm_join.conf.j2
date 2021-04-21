@@ -1,0 +1,22 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: JoinConfiguration
+caCertPath: /etc/kubernetes/pki/ca.crt
+discovery:
+  bootstrapToken:
+    apiServerEndpoint: {{ hostvars[groups['kube_controllers'][0]].ansible_default_ipv4.address }}:{{ kube_apiserver_bind_port }}
+    token: {{ kubeadm_token }}
+    unsafeSkipCAVerification: true
+  timeout: 5m0s
+  tlsBootstrapToken: {{ kubeadm_token }}
+nodeRegistration:
+  name: {{ ansible_hostname }}
+  criSocket: {{ kubelet_container_runtime_endpoint }}
+  taints: []
+{% if inventory_hostname in groups['kube_controllers'] %}
+controlPlane:
+  localAPIEndpoint:
+    advertiseAddress: {{ kube_apiserver_advertise_address }}
+    bindPort: {{ kube_apiserver_bind_port }}
+  certificateKey: "{{ kubeadm_certkey }}"
+{% endif %}

@@ -1,7 +1,18 @@
 ---
+# cilium
+cilium_version: 1.9.6
+
+# kubeconfig
+kubeconfig_dir: "{{ lookup('env', 'HOME') }}/.kube"
+admin_conf: "/etc/kubernetes/admin.conf"
+
 ## kubeadm InitConfiguration
-# Token is a token used to validate cluster information fetched from the control-plane.
+# a token used to validate cluster info fetched from the control-plane.
+# this is a placeholder. 
 kubeadm_token: ~
+
+# kubeadm certification key
+kubeadm_certkey: ~
 
 # AdvertiseAddress sets the IP address for the API server to advertise.
 kube_apiserver_advertise_address: "{{ ansible_default_ipv4.address }}"
@@ -14,10 +25,10 @@ kubelet_container_runtime_endpoint: "/run/crio/crio.sock"
 
 ## kubeadm ClusterConfiguration
 # Kubernetes version.
-kubernetes_version: "v1.20.5"
+kubernetes_version: "v1.21.0"
 
-# Kubernetes cluster name.
-kubernetes_cluster_name: "{{ hostvars[groups['kube_master'][0]].ansible_machine_id | to_uuid }}"
+# Kubernetes cluster name: the first controller node machine id to uuid
+kubernetes_cluster_name: "{{ hostvars[groups['kube_controllers'][0]].ansible_machine_id | to_uuid }}"
 
 # DNSDomain is the dns domain used by k8s services. Defaults to "cluster.local".
 kubernetes_dns_domain: "cluster.local"
