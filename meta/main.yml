@@ -17,7 +17,9 @@ galaxy_info:
     - system
 
 dependencies:
+  - src: git+https://github.com/iorchard/iorchard.keepalived.git
+    version: main
+    name: iorchard.keepalived
   - src: git+https://github.com/iorchard/iorchard.crio.git
     version: main
     name: iorchard.crio
-
