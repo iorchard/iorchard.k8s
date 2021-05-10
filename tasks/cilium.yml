@@ -20,6 +20,6 @@
     release_namespace: kube-system
     chart_ref: "cilium/cilium"
     chart_version: "{{ cilium_version }}"
-    release_values: "{{ lookup('template', 'cilium_values.yml') | from_yaml }}"
+    release_values: "{{ lookup('template', 'cilium_values.yml.j2') | from_yaml }}"
   when: inventory_hostname == groups['kube_controllers'][0]
 ...
