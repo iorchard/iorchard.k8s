@@ -27,7 +27,7 @@ networking:
   dnsDomain: {{ kubernetes_dns_domain }}
   podSubnet: {{ kubernetes_pod_subnet }}
   serviceSubnet: {{ kubernetes_service_subnet }}
-controlPlaneEndpoint: {{ kube_apiserver_advertise_address }}:{{ kube_apiserver_bind_port }}
+controlPlaneEndpoint: {{ control_plane_endpoint_ip }}:{{ kube_apiserver_bind_port }}
 certificatesDir: /etc/kubernetes/pki
 imageRepository: {{ kubernetes_image_repository }}
 apiServer:
