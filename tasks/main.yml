@@ -46,42 +46,43 @@
 - name: Setting kubeadm_certkey fact
   set_fact: kubeadm_certkey={{ hostvars[groups['kube_controllers'][0]].result.stdout }}
 
-- name: Template kubeadm configuration file for init node
+- name: Template kubeadm configuration file for init falsede
   ansible.builtin.template:
     dest: "/etc/kubernetes/kubeadm.conf"
     src: "etc/kubernetes/kubeadm_init.conf.j2"
     owner: "root"
     group: "root"
     mode: "0644"
-  become: yes
+  become: true
   when: inventory_hostname == groups['kube_controllers'][0]
   notify:
     - k8s | systemctl daemon-reload
     - k8s | systemctl restart kubelet.service
 
-- name: Template kubeadm configuration file for join node
+- name: Template kubeadm configuration file for join falsede
   ansible.builtin.template:
     dest: "/etc/kubernetes/kubeadm.conf"
     src: "etc/kubernetes/kubeadm_join.conf.j2"
     owner: "root"
     group: "root"
     mode: "0644"
-  become: yes
+  become: true
   when: inventory_hostname != groups['kube_controllers'][0]
   notify:
     - k8s | systemctl daemon-reload
     - k8s | systemctl restart kubelet.service
 
-- name: Force all notified handlers to run now
+- name: Force all falsetified handlers to run falsew
   ansible.builtin.meta: flush_handlers
 
 - name: systemctl start kubelet.service
   ansible.builtin.service:
     name: "kubelet.service"
     state: "started"
-    enabled: yes
-  changed_when: no
-  ignore_errors: yes
+    enabled: true
+  changed_when: false
+  register: start_kubelet_service
+  failed_when: start_kubelet_service.failed
 
 - name: kubeadm init
   environment:
@@ -94,11 +95,11 @@
       --config=/etc/kubernetes/kubeadm.conf
   args:
     executable: "/bin/bash"
-  become: yes
+  become: true
   when: inventory_hostname == groups['kube_controllers'][0]
   register: result
   until: result is succeeded
-  changed_when: result is not succeeded
+  changed_when: result is falset succeeded
   ignore_errors: true
 
 - name: kubeadm join
@@ -110,11 +111,11 @@
       --config=/etc/kubernetes/kubeadm.conf
   args:
     executable: "/bin/bash"
-  become: yes
+  become: true
   when: inventory_hostname != groups['kube_controllers'][0]
   register: result
   until: result is succeeded
-  changed_when: result is not succeeded
+  changed_when: result is falset succeeded
   ignore_errors: true
 
 - name: Include post tasks from keepalived role
@@ -123,8 +124,11 @@
     tasks_from: post
 
 - name: Set cluster server on /etc/kubernetes/admin.conf
-  ansible.builtin.command: kubectl --kubeconfig {{ admin_conf }} config set-cluster {{ kubernetes_cluster_name }} --server=https://{{ kube_apiserver_advertise_address }}:{{ kube_apiserver_bind_port }}
-  become: yes
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ admin_conf }} config set-cluster
+      {{ kubernetes_cluster_name }}
+      --server=https://{{ kube_apiserver_advertise_address }}:{{ kube_apiserver_bind_port }}
+  become: true
 
 - name: create kubeconfig directory
   ansible.builtin.file:
@@ -134,14 +138,14 @@
 
 - name: copy kubeconfig
   ansible.builtin.command: cp {{ admin_conf }} {{ kubeconfig_dir }}/config
-  become: yes
+  become: true
 
 - name: change ownership and permission of kubeconfig
   ansible.builtin.file:
     path: "{{ kubeconfig_dir }}/config"
     owner: "{{ lookup('env', 'USER') }}"
     group: "{{ lookup('env', 'USER') }}"
-  become: yes
+  become: true
 
 - name: include Container Network (CN) installation
   ansible.builtin.include_tasks: "cilium.yml"

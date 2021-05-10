@@ -8,7 +8,7 @@ admin_conf: "/etc/kubernetes/admin.conf"
 
 ## kubeadm InitConfiguration
 # a token used to validate cluster info fetched from the control-plane.
-# this is a placeholder. 
+# this is a placeholder.
 kubeadm_token: ~
 
 # kubeadm certification key

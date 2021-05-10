@@ -3,17 +3,17 @@
   apt:
     name: "{{ item }}"
     state: present
-    update_cache: yes
-    allow_unauthenticated: no
+    update_cache: true
+    allow_unauthenticated: false
   loop: "{{ prereq_pkgs }}"
-  become: yes
+  become: true
 
 - name: Debian | Install google cloud apt repo keyring
   ansible.builtin.apt_key:
     url: "{{ gcloud_keyring.url }}"
     keyring: "{{ gcloud_keyring.file }}"
     state: present
-  become: yes
+  become: true
 
 - name: Debian | Add google cloud apt repository
   ansible.builtin.apt_repository:
@@ -21,16 +21,16 @@
     state: present
     mode: "0644"
     filename: "{{ gcloud_repo.filename }}"
-    update_cache: yes
-    validate_certs: yes
-  become: yes
+    update_cache: true
+    validate_certs: true
+  become: true
 
 - name: Debian | Install helm apt repo keyring
   ansible.builtin.apt_key:
     url: "{{ helm_apt_keyring.url }}"
     keyring: "{{ helm_apt_keyring.file }}"
     state: present
-  become: yes
+  become: true
 
 - name: Debian | Add helm apt repo repository
   ansible.builtin.apt_repository:
@@ -38,24 +38,24 @@
     state: present
     mode: "0644"
     filename: "{{ helm_apt_repo.filename }}"
-    update_cache: yes
-    validate_certs: yes
-  become: yes
+    update_cache: true
+    validate_certs: true
+  become: true
 
 - name: Debian | Install kubelet, kubeadm, kubectl, and helm deb packages
   ansible.builtin.apt:
     name: "{{ item }}"
     state: present
-    allow_unauthenticated: no
-    update_cache: yes
+    allow_unauthenticated: false
+    update_cache: true
   loop: "{{ k8s_pkgs }}"
-  become: yes
+  become: true
 
 - name: Debian | Mark hold for kubelet, kubeadm, kubectl, and helm
   ansible.builtin.dpkg_selections:
     name: "{{ item }}"
     selection: hold
   loop: "{{ k8s_pkgs }}"
-  become: yes
+  become: true
 
 ...
