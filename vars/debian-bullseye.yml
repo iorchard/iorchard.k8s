@@ -1,7 +1,4 @@
 ---
-# cilium helm repo
-cilium_helm_repo: "https://helm.cilium.io/"
-
 # pre-requisite packages
 prereq_pkgs:
   - apt-transport-https

@@ -146,7 +146,4 @@
     owner: "{{ lookup('env', 'USER') }}"
     group: "{{ lookup('env', 'USER') }}"
   become: true
-
-- name: include Container Network (CN) installation
-  ansible.builtin.include_tasks: "cilium.yml"
 ...
