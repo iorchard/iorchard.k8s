@@ -97,6 +97,13 @@
     mode: "0755"
   become: true
 
+- name: Create kubernetes manifests directory
+  ansible.builtin.file:
+    path: /etc/kubernetes/manifests
+    state: directory
+    mode: 0755
+  become: true
+
 - name: Template keepalived static pod manifest on init node
   ansible.builtin.template:
     dest: "/etc/kubernetes/manifests/keepalived.yml"
