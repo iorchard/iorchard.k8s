@@ -26,6 +26,6 @@ backend k8s-api
     mode tcp
     option  ssl-hello-chk
     balance roundrobin
-        {%  for host in groups['kube_masters'] %}
+        {%  for host in groups['kube_controllers'] %}
         server {{ hostvars[host].inventory_hostname }} {{ hostvars[host].ansible_host }}:{{ kube_apiserver_bind_port }} check
         {% end for %}
