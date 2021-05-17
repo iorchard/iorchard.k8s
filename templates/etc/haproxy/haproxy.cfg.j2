@@ -28,4 +28,4 @@ backend k8s-api
     balance roundrobin
         {%  for host in groups['kube_controllers'] %}
         server {{ hostvars[host].inventory_hostname }} {{ hostvars[host].ansible_host }}:{{ kube_apiserver_bind_port }} check
-        {% end for %}
+        {%  endfor %}

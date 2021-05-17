@@ -3,7 +3,7 @@
 prereq_pkgs:
   - apt-transport-https
   - ca-certificates
-  - netcat-openbsd
+  - curl
 
 # helm apt repo keyring
 helm_apt_keyring:
