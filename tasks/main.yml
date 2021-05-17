@@ -97,7 +97,7 @@
     mode: "0755"
   become: true
 
-- name: Template keepalived static pod manifest
+- name: Template keepalived static pod manifest on init node
   ansible.builtin.template:
     dest: "/etc/kubernetes/manifests/keepalived.yml"
     src: "etc/kubernetes/manifests/keepalived.yml.j2"
@@ -105,6 +105,7 @@
     group: "root"
     mode: "0644"
   become: true
+  when: inventory_hostname == groups['kube_controllers'][0]
 
 - name: Create haproxy config directory
   ansible.builtin.file:
@@ -122,7 +123,7 @@
     mode: "0644"
   become: true
 
-- name: Template haproxy static pod manifest
+- name: Template haproxy static pod manifest on init node
   ansible.builtin.template:
     dest: "/etc/kubernetes/manifests/haproxy.yml"
     src: "etc/kubernetes/manifests/haproxy.yml.j2"
@@ -130,6 +131,7 @@
     group: "root"
     mode: "0644"
   become: true
+  when: inventory_hostname == groups['kube_controllers'][0]
 
 - name: Force all notified handlers to run now
   ansible.builtin.meta: flush_handlers
@@ -177,12 +179,32 @@
   changed_when: result is not succeeded
   ignore_errors: true
 
-- name: Set cluster server on /etc/kubernetes/admin.conf
-  ansible.builtin.command: >
-    kubectl --kubeconfig {{ admin_conf }} config set-cluster
-      {{ kubernetes_cluster_name }}
-      --server=https://{{ kube_apiserver_advertise_address }}:{{ kube_apiserver_bind_port }}
+- name: Template keepalived static pod manifest on join node
+  ansible.builtin.template:
+    dest: "/etc/kubernetes/manifests/keepalived.yml"
+    src: "etc/kubernetes/manifests/keepalived.yml.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
   become: true
+  when: inventory_hostname != groups['kube_controllers'][0]
+
+- name: Template haproxy static pod manifest on join node
+  ansible.builtin.template:
+    dest: "/etc/kubernetes/manifests/haproxy.yml"
+    src: "etc/kubernetes/manifests/haproxy.yml.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+  when: inventory_hostname != groups['kube_controllers'][0]
+
+#- name: Set cluster server on /etc/kubernetes/admin.conf
+#  ansible.builtin.command: >
+#    kubectl --kubeconfig {{ admin_conf }} config set-cluster
+#      {{ kubernetes_cluster_name }}
+#      --server=https://{{ kube_apiserver_advertise_address }}:{{ kube_apiserver_bind_port }}
+#  become: true
 
 - name: create kubeconfig directory
   ansible.builtin.file:
