@@ -4,7 +4,7 @@ kind: JoinConfiguration
 caCertPath: /etc/kubernetes/pki/ca.crt
 discovery:
   bootstrapToken:
-    apiServerEndpoint: {{ control_plane_endpoint_ip }}:{{ kube_apiserver_bind_port }}
+    apiServerEndpoint: {{ keepalived_vip }}:{{ haproxy_bind_port }}
     token: {{ kubeadm_token }}
     unsafeSkipCAVerification: true
   timeout: 5m0s
