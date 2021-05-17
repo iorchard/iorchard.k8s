@@ -72,6 +72,13 @@
     - k8s | systemctl daemon-reload
     - k8s | systemctl restart kubelet.service
 
+- name: Create keepalived config directory
+  ansible.builtin.file:
+    path: /etc/keepalived
+    state: directory
+    mode: 0755
+  become: true
+
 - name: Template keepalived.conf
   ansible.builtin.template:
     dest: "/etc/keepalived/keepalived.conf"
@@ -81,6 +88,15 @@
     mode: "0644"
   become: true
 
+- name: Template check_apiserver.sh
+  ansible.builtin.template:
+    dest: "/etc/keepalived/check_apiserver.sh"
+    src: "etc/keepalived/check_apiserver.sh.j2"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  become: true
+
 - name: Template keepalived static pod manifest
   ansible.builtin.template:
     dest: "/etc/kubernetes/manifests/keepalived.yml"
@@ -88,6 +104,13 @@
     owner: "root"
     group: "root"
     mode: "0644"
+  become: true
+
+- name: Create haproxy config directory
+  ansible.builtin.file:
+    path: /etc/haproxy
+    state: directory
+    mode: 0755
   become: true
 
 - name: Template haproxy.cfg
@@ -153,11 +176,6 @@
   until: result is succeeded
   changed_when: result is not succeeded
   ignore_errors: true
-
-- name: Include post tasks from keepalived role
-  ansible.builtin.include_role:
-    name: iorchard.keepalived
-    tasks_from: post
 
 - name: Set cluster server on /etc/kubernetes/admin.conf
   ansible.builtin.command: >

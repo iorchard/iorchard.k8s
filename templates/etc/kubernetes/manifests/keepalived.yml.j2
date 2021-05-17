@@ -20,6 +20,8 @@ spec:
       name: config
     - mountPath: /etc/keepalived/check_apiserver.sh
       name: check
+    - mountPath: /lib/modules
+      name: libmodules
   hostNetwork: true
   volumes:
   - hostPath:
@@ -28,4 +30,7 @@ spec:
   - hostPath:
       path: /etc/keepalived/check_apiserver.sh
     name: check
+  - hostPath:
+      path: /lib/modules
+    name: libmodules
 status: {}
