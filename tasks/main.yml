@@ -72,6 +72,42 @@
     - k8s | systemctl daemon-reload
     - k8s | systemctl restart kubelet.service
 
+- name: Template keepalived.conf
+  ansible.builtin.template:
+    dest: "/etc/keepalived/keepalived.conf"
+    src: "etc/keepalived/keepalived.conf.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+
+- name: Template keepalived static pod manifest
+  ansible.builtin.template:
+    dest: "/etc/kubernetes/manifests/keepalived.yml"
+    src: "etc/kubernetes/manifests/keepalived.yml.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+
+- name: Template haproxy.cfg
+  ansible.builtin.template:
+    dest: "/etc/haproxy/haproxy.cfg"
+    src: "etc/haproxy/haproxy.cfg.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+
+- name: Template haproxy static pod manifest
+  ansible.builtin.template:
+    dest: "/etc/kubernetes/manifests/haproxy.yml"
+    src: "etc/kubernetes/manifests/haproxy.yml.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+
 - name: Force all notified handlers to run now
   ansible.builtin.meta: flush_handlers
 

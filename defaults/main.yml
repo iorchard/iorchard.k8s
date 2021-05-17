@@ -1,6 +1,10 @@
 ---
-# cilium
-cilium_version: 1.9.6
+# keepalived
+keepalived_interface: "eth0"
+keepalived_vip: "192.168.21.120"
+
+# haproxy
+haproxy_bind_port: "8443"
 
 # kubeconfig
 kubeconfig_dir: "{{ lookup('env', 'HOME') }}/.kube"
@@ -44,7 +48,6 @@ kubernetes_service_subnet: "10.233.0.0/18"
 
 # ImageRepository sets the container registry to pull images from.
 kubernetes_image_repository: "k8s.gcr.io"
-
 
 ## kubeadm KubeletConfiguration
 # address is the IP address for the Kubelet to serve on (set to 0.0.0.0

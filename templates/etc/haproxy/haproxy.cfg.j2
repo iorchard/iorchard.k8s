@@ -1,0 +1,31 @@
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    daemon
+
+defaults
+        log     global
+        mode    http
+        option  httplog
+        option  dontlognull
+        timeout connect 5000
+        timeout client  50000
+        timeout server  50000
+
+frontend k8s-api
+    bind :::{{ haproxy_bind_port }}
+    mode tcp
+    default_backend k8s-api
+
+backend k8s-api
+    option  httpchk GET /healthz
+    http-check expect status 200
+    mode tcp
+    option  ssl-hello-chk
+    balance roundrobin
+        {%  for host in groups['kube_masters'] %}
+        server {{ hostvars[host].inventory_hostname }} {{ hostvars[host].ansible_host }}:{{ kube_apiserver_bind_port }} check
+        {% end for %}
