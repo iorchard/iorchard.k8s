@@ -206,13 +206,6 @@
   become: true
   when: inventory_hostname != groups['kube_controllers'][0]
 
-#- name: Set cluster server on /etc/kubernetes/admin.conf
-#  ansible.builtin.command: >
-#    kubectl --kubeconfig {{ admin_conf }} config set-cluster
-#      {{ kubernetes_cluster_name }}
-#      --server=https://{{ kube_apiserver_advertise_address }}:{{ kube_apiserver_bind_port }}
-#  become: true
-
 - name: create kubeconfig directory
   ansible.builtin.file:
     path: "{{ kubeconfig_dir }}"
