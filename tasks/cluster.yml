@@ -1,0 +1,182 @@
+---
+- name: Main | import common tasks
+  ansible.builtin.import_tasks: "common.yml"
+
+- name: Cluster | Create kubeadm token
+  ansible.builtin.command: kubeadm token generate
+  register: result
+  delegate_to: "{{ groups['kube_controllers'][0] }}"
+  run_once: true
+
+- name: Cluster | Setting kubeadm_token fact
+  set_fact: kubeadm_token={{ hostvars[groups['kube_controllers'][0]].result.stdout }}
+
+- name: Cluster | Create kubeadm certificate key
+  ansible.builtin.command: kubeadm certs certificate-key
+  register: result
+  delegate_to: "{{ groups['kube_controllers'][0] }}"
+  run_once: true
+
+- name: Cluster | Setting kubeadm_certkey fact
+  set_fact: kubeadm_certkey={{ hostvars[groups['kube_controllers'][0]].result.stdout }}
+
+- name: Cluster | Template kubeadm configuration file for init node
+  ansible.builtin.template:
+    dest: "/etc/kubernetes/kubeadm.conf"
+    src: "etc/kubernetes/kubeadm_init.conf.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+  when: inventory_hostname == groups['kube_controllers'][0]
+  notify:
+    - k8s | systemctl daemon-reload
+    - k8s | systemctl restart kubelet.service
+
+- name: Cluster | Template kubeadm configuration file for join node
+  ansible.builtin.template:
+    dest: "/etc/kubernetes/kubeadm.conf"
+    src: "etc/kubernetes/kubeadm_join.conf.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+  when: inventory_hostname != groups['kube_controllers'][0]
+  notify:
+    - k8s | systemctl daemon-reload
+    - k8s | systemctl restart kubelet.service
+
+- name: Cluster | Create keepalived config directory
+  ansible.builtin.file:
+    path: /etc/keepalived
+    state: directory
+    mode: 0755
+  become: true
+
+- name: Cluster | Template keepalived.conf
+  ansible.builtin.template:
+    dest: "/etc/keepalived/keepalived.conf"
+    src: "etc/keepalived/keepalived.conf.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+
+- name: Cluster | Template check_apiserver.sh
+  ansible.builtin.template:
+    dest: "/etc/keepalived/check_apiserver.sh"
+    src: "etc/keepalived/check_apiserver.sh.j2"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  become: true
+
+- name: Cluster | Create kubernetes manifests directory
+  ansible.builtin.file:
+    path: /etc/kubernetes/manifests
+    state: directory
+    mode: 0755
+  become: true
+
+- name: Cluster | Template keepalived static pod manifest on init node
+  ansible.builtin.template:
+    dest: "/etc/kubernetes/manifests/keepalived.yml"
+    src: "etc/kubernetes/manifests/keepalived.yml.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+  when: inventory_hostname == groups['kube_controllers'][0]
+
+- name: Cluster | Create haproxy config directory
+  ansible.builtin.file:
+    path: /etc/haproxy
+    state: directory
+    mode: 0755
+  become: true
+
+- name: Cluster | Template haproxy.cfg
+  ansible.builtin.template:
+    dest: "/etc/haproxy/haproxy.cfg"
+    src: "etc/haproxy/haproxy.cfg.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+
+- name: Cluster | Template haproxy static pod manifest on init node
+  ansible.builtin.template:
+    dest: "/etc/kubernetes/manifests/haproxy.yml"
+    src: "etc/kubernetes/manifests/haproxy.yml.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+  when: inventory_hostname == groups['kube_controllers'][0]
+
+- name: Cluster | Force all notified handlers to run now
+  ansible.builtin.meta: flush_handlers
+
+- name: Cluster | systemctl start kubelet.service
+  ansible.builtin.service:
+    name: "kubelet.service"
+    state: "started"
+    enabled: true
+  changed_when: false
+  register: start_kubelet_service
+  failed_when: start_kubelet_service.failed
+
+- name: Cluster | kubeadm init
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  ansible.builtin.shell: |
+    set -euo pipefail
+    kubeadm init \
+      --skip-phases=addon/kube-proxy \
+      --upload-certs \
+      --config=/etc/kubernetes/kubeadm.conf
+  args:
+    executable: "/bin/bash"
+  become: true
+  when: inventory_hostname == groups['kube_controllers'][0]
+  register: result
+  until: result is succeeded
+  changed_when: result is not succeeded
+  ignore_errors: true
+
+- name: Cluster | kubeadm join
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  ansible.builtin.shell: |
+    set -euo pipefail
+    kubeadm join \
+      --config=/etc/kubernetes/kubeadm.conf
+  args:
+    executable: "/bin/bash"
+  become: true
+  when: inventory_hostname != groups['kube_controllers'][0]
+  register: result
+  until: result is succeeded
+  changed_when: result is not succeeded
+  ignore_errors: true
+
+- name: Cluster | Template keepalived static pod manifest on join node
+  ansible.builtin.template:
+    dest: "/etc/kubernetes/manifests/keepalived.yml"
+    src: "etc/kubernetes/manifests/keepalived.yml.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+  when: inventory_hostname != groups['kube_controllers'][0]
+
+- name: Cluster | Template haproxy static pod manifest on join node
+  ansible.builtin.template:
+    dest: "/etc/kubernetes/manifests/haproxy.yml"
+    src: "etc/kubernetes/manifests/haproxy.yml.j2"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+  when: inventory_hostname != groups['kube_controllers'][0]
+...

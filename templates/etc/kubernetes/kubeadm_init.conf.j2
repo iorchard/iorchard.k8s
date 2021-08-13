@@ -21,7 +21,7 @@ certificateKey: {{ kubeadm_certkey }}
 ---
 apiVersion: kubeadm.k8s.io/v1beta2
 kind: ClusterConfiguration
-kubernetesVersion: {{ kubernetes_version }}
+kubernetesVersion: v{{ kubernetes_version }}
 clusterName: {{ kubernetes_cluster_name }}
 networking:
   dnsDomain: {{ kubernetes_dns_domain }}

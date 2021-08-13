@@ -27,10 +27,10 @@ gcloud_repo:
 
 # k8s packages
 k8s_pkgs:
-  - kubelet
-  - kubeadm
-  - kubectl
-  - helm
+  - {name: "kubectl", version: "={{ kubernetes_version }}-00"}
+  - {name: "kubelet", version: "={{ kubernetes_version }}-00"}
+  - {name: "kubeadm", version: "={{ kubernetes_version }}-00"}
+  - {name: "helm", version: ""}
 
 # kubeadm | KubeletConfiguration
 _kubelet_resolv_conf: "/etc/resolv.conf"

@@ -44,7 +44,7 @@
 
 - name: Debian | Install kubelet, kubeadm, kubectl, and helm deb packages
   ansible.builtin.apt:
-    name: "{{ item }}"
+    name: "{{ item.name }}{{ item.version }}"
     state: present
     allow_unauthenticated: false
     update_cache: true
@@ -53,9 +53,8 @@
 
 - name: Debian | Mark hold for kubelet, kubeadm, kubectl, and helm
   ansible.builtin.dpkg_selections:
-    name: "{{ item }}"
+    name: "{{ item.name }}"
     selection: hold
   loop: "{{ k8s_pkgs }}"
   become: true
-
 ...

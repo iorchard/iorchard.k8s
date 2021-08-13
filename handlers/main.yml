@@ -1,22 +1,17 @@
 ---
 - name: k8s | systemctl daemon-reload
-  systemd:
+  ansible.builtin.systemd:
     daemon_reload: true
   become: true
-  changed_when: false
   register: reload_systemd_daemon
   failed_when: reload_systemd_daemon.failed
 
 - name: k8s | systemctl restart kubelet.service
-  service:
+  ansible.builtin.service:
     name: "kubelet.service"
     state: "restarted"
     enabled: true
-  delegate_to: "{{ item }}"
-  loop: "{{ ansible_play_hosts }}"
   become: true
-  run_once: true
-  changed_when: false
   register: restart_kubelet_service
   failed_when: restart_kubelet_service.failed
 ...

@@ -1,0 +1,27 @@
+---
+- name: Setup | import common tasks
+  ansible.builtin.import_tasks: "common.yml"
+
+- name: Setup | create kubeconfig directory
+  ansible.builtin.file:
+    path: "{{ kubeconfig_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Setup | copy kubeconfig
+  ansible.builtin.command: cp {{ admin_conf }} {{ kubeconfig_dir }}/config
+  become: true
+
+- name: Setup | change ownership and permission of kubeconfig
+  ansible.builtin.file:
+    path: "{{ kubeconfig_dir }}/config"
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
+  become: true
+
+- name: Setup | install helm diff plugin
+  community.kubernetes.helm_plugin:
+    plugin_path: "{{ item.path }}"
+    state: present
+  loop: "{{ helm_plugin }}"
+...

@@ -7,7 +7,7 @@ keepalived_vip: "192.168.21.120"
 haproxy_bind_port: "8443"
 
 # kubeconfig
-kubeconfig_dir: "{{ lookup('env', 'HOME') }}/.kube"
+kubeconfig_dir: "{{ ansible_env.HOME }}/.kube"
 admin_conf: "/etc/kubernetes/admin.conf"
 
 ## kubeadm InitConfiguration
@@ -29,7 +29,7 @@ kubelet_container_runtime_endpoint: "/run/crio/crio.sock"
 
 ## kubeadm ClusterConfiguration
 # Kubernetes version.
-kubernetes_version: "v1.21.0"
+kubernetes_version: "1.21.0"
 
 # Kubernetes cluster name: the first controller node machine id to uuid
 kubernetes_cluster_name: "{{ hostvars[groups['kube_controllers'][0]].ansible_machine_id | to_uuid }}"
@@ -94,4 +94,9 @@ kubelet_eviction_hard:
 # ResolverConfig is the resolver configuration file used as the basis
 # for the container DNS resolution configuration.
 kubelet_resolv_conf: "{{ _kubelet_resolv_conf }}"
+
+# helm plugins
+helm_plugin:
+  - {name: "helm-diff", path: "https://github.com/databus23/helm-diff"}
+
 ...
